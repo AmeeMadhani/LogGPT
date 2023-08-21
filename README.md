@@ -1,12 +1,10 @@
-# localGPT
+# logGPT
 
 This project was inspired by the original [privateGPT](https://github.com/imartinez/privateGPT). Most of the description here is inspired by the original privateGPT.
 
-For detailed overview of the project, Watch this [Youtube Video](https://youtu.be/MlyoObdIHyo).
+In this model, We have replaced the GPT4ALL model with Vicuna-7B model and we are using the InstructorEmbeddings instead of LlamaEmbeddings as used in the original privateGPT. Both Embeddings as well as LLM will run on GPU instead of CPU. It also has CPU support if you do not have a GPU (see below for instruction).
 
-In this model, I have replaced the GPT4ALL model with Vicuna-7B model and we are using the InstructorEmbeddings instead of LlamaEmbeddings as used in the original privateGPT. Both Embeddings as well as LLM will run on GPU instead of CPU. It also has CPU support if you do not have a GPU (see below for instruction).
-
-Ask questions to your documents without an internet connection, using the power of LLMs. 100% private, no data leaves your execution environment at any point. You can ingest documents and ask questions without an internet connection!
+Ask questions to your documents without an internet connection, using the power of LLMs. 100% private, no data leaves your execution environment at any point. You can ingest documents and ask questions on policy infrigement without an internet connection!
 
 Built with [LangChain](https://github.com/hwchase17/langchain) and [Vicuna-7B](https://huggingface.co/TheBloke/vicuna-7B-1.1-HF) and [InstructorEmbeddings](https://instructor-embedding.github.io/)
 
@@ -31,17 +29,6 @@ pip install -r requirements.txt
 ```
 
 
-If you want to use BLAS or Metal with [llama-cpp](<(https://github.com/abetlen/llama-cpp-python#installation-with-openblas--cublas--clblast--metal)>) you can set appropriate flags:
-
-```shell
-# Example: cuBLAS
-CMAKE_ARGS="-DLLAMA_CUBLAS=on" FORCE_CMAKE=1 pip install -r requirements.txt
-```
-
-## Test dataset
-
-This repo uses a [Constitution of USA ](https://constitutioncenter.org/media/files/constitution.pdf) as an example.
-
 ## Instructions for ingesting your own dataset
 
 Put any and all of your .txt, .pdf, or .csv files into the SOURCE_DOCUMENTS directory
@@ -55,18 +42,6 @@ Run the following command to ingest all the data.
 
 ```shell
 python ingest.py
-```
-
-Use the device type argument to specify a given device.
-
-```sh
-python ingest.py --device_type cpu
-```
-
-Use help for a full list of supported devices.
-
-```sh
-python ingest.py --help
 ```
 
 It will create an index containing the local vectorstore. Will take time, depending on the size of your documents.
@@ -133,58 +108,6 @@ pip install pdfminer.six
 pip install xformers
 ```
 
-**Upgrade packages:**
-Your langchain or llama-cpp version could be outdated. Upgrade your packages by running install again.
-
-```shell
-pip install -r requirements.txt
-```
-
-If you are still getting errors, try installing the latest llama-cpp-python with these flags, and [see thread](https://github.com/abetlen/llama-cpp-python/issues/317#issuecomment-1587962205).
-
-```shell
-CMAKE_ARGS="-DLLAMA_METAL=on" FORCE_CMAKE=1 pip install -U llama-cpp-python --no-cache-dir
-```
-
-# Run the UI
-
-1. Start by opening up `run_localGPT_API.py` in a code editor of your choice. If you are using gpu skip to step 3.
-
-2. If you are running on cpu change `DEVICE_TYPE = 'cuda'` to `DEVICE_TYPE = 'cpu'`.
-
-   - Comment out the following:
-
-   ```shell
-   model_id = "TheBloke/WizardLM-7B-uncensored-GPTQ"
-   model_basename = "WizardLM-7B-uncensored-GPTQ-4bit-128g.compat.no-act-order.safetensors"
-   LLM = load_model(device_type=DEVICE_TYPE, model_id=model_id, model_basename = model_basename)
-   ```
-
-   - Uncomment:
-
-   ```shell
-   model_id = "TheBloke/guanaco-7B-HF" # or some other -HF or .bin model
-   LLM = load_model(device_type=DEVICE_TYPE, model_id=model_id)
-   ```
-
-   - If you are running gpu there should be nothing to change. Save and close `run_localGPT_API.py`.
-
-3. Open up a terminal and activate your python environment that contains the dependencies installed from requirements.txt.
-
-4. Navigate to the `/LOCALGPT` directory.
-
-5. Run the following command `python run_localGPT_API.py`. The API should being to run.
-
-6. Wait until everything has loaded in. You should see something like `INFO:werkzeug:Press CTRL+C to quit`.
-
-7. Open up a second terminal and activate the same python environment.
-
-8. Navigate to the `/LOCALGPT/localGPTUI` directory.
-
-9. Run the command `python localGPTUI.py`.
-
-10. Open up a web browser and go the address `http://localhost:5111/`.
-
 # How does it work?
 
 Selecting the right local models and the power of `LangChain` you can run the entire pipeline locally, without any data leaving your environment, and with reasonable performance.
@@ -244,50 +167,3 @@ To install a C++ compiler on Windows 10/11, follow these steps:
    - C++ CMake tools for Windows
 3. Download the MinGW installer from the [MinGW website](https://sourceforge.net/projects/mingw/).
 4. Run the installer and select the "gcc" component.
-
-### NVIDIA Driver's Issues:
-
-Follow this [page](https://linuxconfig.org/how-to-install-the-nvidia-drivers-on-ubuntu-22-04) to install NVIDIA Drivers.
-
-## Star History
-
-[![Star History Chart](https://api.star-history.com/svg?repos=PromtEngineer/localGPT&type=Date)](https://star-history.com/#PromtEngineer/localGPT&Date)
-
-# Disclaimer
-
-This is a test project to validate the feasibility of a fully local solution for question answering using LLMs and Vector embeddings. It is not production ready, and it is not meant to be used in production. Vicuna-7B is based on the Llama model so that has the original Llama license.
-
-# Common Errors
-
- - [Torch not compatible with CUDA enabled](https://github.com/pytorch/pytorch/issues/30664)
-
-   -  Get CUDA version
-      ```shell
-      nvcc --version
-      ```
-      ```shell
-      nvidia-smi
-      ```
-   - Try installing PyTorch depending on your CUDA version
-      ```shell
-         conda install -c pytorch torchvision cudatoolkit=10.1 pytorch
-      ```
-   - If it doesn't work, try reinstalling
-      ```shell
-         pip uninstall torch
-         pip cache purge
-         pip install torch -f https://download.pytorch.org/whl/torch_stable.html
-      ```
-
-- [ERROR: pip's dependency resolver does not currently take into account all the packages that are installed](https://stackoverflow.com/questions/72672196/error-pips-dependency-resolver-does-not-currently-take-into-account-all-the-pa/76604141#76604141)
-  ```shell
-     pip install h5py
-     pip install typing-extensions
-     pip install wheel
-  ```
-- [Failed to import transformers](https://github.com/huggingface/transformers/issues/11262)
-  - Try re-install
-    ```shell
-       conda uninstall tokenizers, transformers
-       pip install transformers
-    ```
